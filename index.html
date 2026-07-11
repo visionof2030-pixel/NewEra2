@@ -1752,7 +1752,7 @@
         }
 
         // ============================================================
-        //  حساب بيانات اللاعبين
+        //  حساب بيانات اللاعبين مع ترتيب يعتمد على الدقة عند التعادل
         // ============================================================
         function calculatePlayersData() {
             const predictions = state.predictions || [];
@@ -1768,7 +1768,14 @@
                 if (result.isCorrect) { scores[p.user_name].points++;
                     scores[p.user_name].correct++; } else if (result.predictionTeam !== null) { scores[p.user_name].wrong++; }
             }
-            const board = Object.values(scores).sort((a, b) => b.points - a.points || (b.correct - a.correct));
+            // الترتيب: النقاط أولاً، ثم الدقة (نسبة الصحيحات) عند التعادل في النقاط
+            const board = Object.values(scores).sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                // عند تساوي النقاط، نعتمد على الدقة
+                const accA = a.total > 0 ? (a.correct / a.total) : 0;
+                const accB = b.total > 0 ? (b.correct / b.total) : 0;
+                return accB - accA;
+            });
             let totalPoints = 0,
                 maxPoints = 0,
                 totalAccuracy = 0,
